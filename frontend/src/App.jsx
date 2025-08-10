@@ -50,6 +50,7 @@ function App() {
                   <Route path="customers/new" element={<CustomerForm />} />
                   <Route path="reports" element={<Reports />} />
                   <Route path="reports/dashboard" element={<ReportDashboard />} />
+                  <Route path="/settings" element={<Settings />} />
                 </Route>
                 
                 {/* Fallback route */}
