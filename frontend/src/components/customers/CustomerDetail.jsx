@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import api from '../../services/api';
 
 export default function CustomerDetail() {
   const { id } = useParams();
@@ -11,18 +12,21 @@ export default function CustomerDetail() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetch(`/api/contacts/${id}`)
-      .then(res => res.json())
-      .then(data => {
-        setCustomer(data.contact);
-        setForm(data.contact);
-        setLoading(false);
-      })
-      .catch(() => {
-        setError('Failed to fetch customer');
-        setLoading(false);
-      });
-  }, [id]);
+  const fetchCustomer = async () => {
+    try {
+      const response = await api.get(`/contacts/${id}`);
+      setCustomer(response.data.contact);
+      setForm(response.data.contact);
+      setLoading(false);
+    } catch (error) {
+      console.error('Fetch customer error:', error);
+      setError('Failed to fetch customer');
+      setLoading(false);
+    }
+  };
+  
+  fetchCustomer();
+}, [id]);
 
   const handleChange = e => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -31,7 +35,7 @@ export default function CustomerDetail() {
   const handleSave = async e => {
     e.preventDefault();
     try {
-      const res = await fetch(`/api/contacts/${id}`, {
+      const res = await fetch(`http://localhost:3001/api/contacts/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
@@ -52,7 +56,7 @@ export default function CustomerDetail() {
   const handleDelete = async () => {
     if (!window.confirm('Delete this customer?')) return;
     try {
-      await fetch(`/api/contacts/${id}`, { method: 'DELETE' });
+      await fetch(`http://localhost:3001/api/contacts/${id}`, { method: 'DELETE' });
       navigate('/customers');
     } catch {
       setError('Failed to delete customer');

@@ -149,6 +149,11 @@ function FilterDialog({ open, onClose, reportType, onApplyFilters }) {
     
     onApplyFilters(appliedFilters);
   };
+
+// Use React.memo for chart components
+const MemoizedChart = React.memo(({ data, type }) => {
+  // Chart implementation
+});
   
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>

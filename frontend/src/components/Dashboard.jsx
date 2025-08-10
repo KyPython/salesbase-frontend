@@ -1,39 +1,138 @@
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, AreaChart, Area } from 'recharts';
+import { API_ENDPOINTS } from '../services/api';
+
+
+// Dashboard.jsx (UPDATED - MUI version)
 import React, { useEffect, useState } from 'react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Grid,
+  Alert,
+  CircularProgress,
+} from '@mui/material';
+import api from '../services/api';
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch('/api/pipeline/analytics/overview')
-      .then(res => res.json())
-      .then(setStats);
+    const fetchStats = async () => {
+      try {
+        setLoading(true);
+        const response = await api.get('/pipeline/analytics/overview');
+        setStats(response.data);
+        setError(null);
+      } catch (err) {
+        console.error('Failed to fetch dashboard stats:', err);
+        setError('Failed to load dashboard data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
   }, []);
 
-  if (!stats) return <div>Loading dashboard...</div>;
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return <Alert severity="error">{error}</Alert>;
+  }
+
+  if (!stats) {
+    return <Alert severity="info">No data available</Alert>;
+  }
 
   return (
-    <div>
-      <h2 className="text-xl font-bold mb-4">Sales KPIs</h2>
-      <div className="grid grid-cols-2 gap-6 mb-8">
-        <div className="p-4 bg-white rounded shadow">
-          <h3>Total Deals</h3>
-          <div className="text-2xl">{stats.total_deals}</div>
-        </div>
-        <div className="p-4 bg-white rounded shadow">
-          <h3>Total Value</h3>
-          <div className="text-2xl">${stats.total_value}</div>
-        </div>
-      </div>
-      <h3 className="font-semibold mb-2">Deals by Stage</h3>
-      <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={stats.stages}>
-          <XAxis dataKey="stage_name" />
-          <YAxis />
-          <Tooltip />
-          <Bar dataKey="deal_count" fill="#3182ce" />
-        </BarChart>
-      </ResponsiveContainer>
-    </div>
+    <Box>
+      <Typography variant="h4" gutterBottom>
+        Sales Dashboard
+      </Typography>
+      
+      {/* KPI Cards */}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <Typography color="text.secondary" gutterBottom>
+                Total Deals
+              </Typography>
+              <Typography variant="h4" component="div">
+                {stats.pipeline_summary?.total_deals || 0}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <Typography color="text.secondary" gutterBottom>
+                Total Value
+              </Typography>
+              <Typography variant="h4" component="div">
+                ${(stats.pipeline_summary?.total_value || 0).toLocaleString()}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <Typography color="text.secondary" gutterBottom>
+                Avg Win Rate
+              </Typography>
+              <Typography variant="h4" component="div">
+                {stats.pipeline_summary?.avg_win_rate || 0}%
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <Typography color="text.secondary" gutterBottom>
+                Active Stages
+              </Typography>
+              <Typography variant="h4" component="div">
+                {stats.pipeline_stages?.length || 0}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+      
+      {/* Chart */}
+      <Card>
+        <CardContent>
+          <Typography variant="h6" gutterBottom>
+            Deals by Stage
+          </Typography>
+          <Box sx={{ width: '100%', height: 400 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={stats.pipeline_stages || []}>
+                <XAxis dataKey="stage_name" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="deal_count" fill="#1e3a8a" />
+              </BarChart>
+            </ResponsiveContainer>
+          </Box>
+        </CardContent>
+      </Card>
+    </Box>
   );
 }

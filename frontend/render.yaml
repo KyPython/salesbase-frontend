@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: salesbase-frontend
+    env: static
+    plan: starter
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./build
+    envVars:
+      - key: REACT_APP_API_URL
+        value: https://your-backend-app.onrender.com/api
+      - key: REACT_APP_ENVIRONMENT
+        value: production
+    autoDeploy: true
+    branch: main
