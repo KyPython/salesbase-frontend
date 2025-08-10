@@ -17,6 +17,7 @@ import CustomerForm from './components/customers/CustomerForm';
 import Reports from './components/Reports.jsx';
 import ReportDashboard from './pages/Reports/ReportDashboard.jsx';
 import Register from './components/Register'; // Import Register component
+import Settings from './components/Settings'; // Import Settings component
 
 function App() {
   return (
