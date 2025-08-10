@@ -3,6 +3,7 @@ import axios from 'axios';
 const api = axios.create({
   baseURL: 'https://salesbase-backend.onrender.com/api',
   timeout: 10000,
+  withCredentials: true
 });
 
 // Request interceptor to add auth token
