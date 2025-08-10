@@ -28,15 +28,17 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    setLoading(true); // Use setLoading to indicate loading state
+    setLoading(true);
     try {
       const response = await api.post('/auth/login', { email, password });
-      localStorage.setItem('token', response.data.token);
-      navigate('/dashboard');
+      if (response.status === 200) {
+        localStorage.setItem('token', response.data.token);
+        navigate('/dashboard'); // or whatever your dashboard route is
+      }
     } catch (err) {
-      setError('Login failed. Please try again.');
+      setError('Login failed');
     } finally {
-      setLoading(false); // Reset loading state
+      setLoading(false);
     }
   };
 
