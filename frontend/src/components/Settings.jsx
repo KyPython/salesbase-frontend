@@ -1,7 +1,32 @@
 import React, { useState } from 'react';
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Tabs,
+  Tab,
+  TextField,
+  Button,
+  Switch,
+  FormControlLabel,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Grid,
+  Divider,
+  Alert
+} from '@mui/material';
+import {
+  Person as PersonIcon,
+  Notifications as NotificationsIcon,
+  Security as SecurityIcon,
+  Save as SaveIcon
+} from '@mui/icons-material';
 
 export default function Settings() {
-  const [activeTab, setActiveTab] = useState('profile');
+  const [activeTab, setActiveTab] = useState(0);
   const [profileData, setProfileData] = useState({
     firstName: 'John',
     lastName: 'Doe',
@@ -24,10 +49,12 @@ export default function Settings() {
     passwordExpiry: 90
   });
 
+  const [saveStatus, setSaveStatus] = useState('');
+
   const handleProfileSave = (e) => {
     e.preventDefault();
-    // Handle profile save logic
-    alert('Profile updated successfully!');
+    setSaveStatus('success');
+    setTimeout(() => setSaveStatus(''), 3000);
   };
 
   const handleNotificationChange = (key) => {
@@ -44,260 +71,221 @@ export default function Settings() {
     }));
   };
 
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue);
+  };
+
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-6">Settings</h2>
-      
-      {/* Tab Navigation */}
-      <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-6">
-        <button
-          onClick={() => setActiveTab('profile')}
-          className={`px-4 py-2 rounded-md font-medium transition-colors ${
-            activeTab === 'profile' 
-              ? 'bg-white text-blue-600 shadow-sm' 
-              : 'text-gray-600 hover:text-gray-900'
-          }`}
-        >
-          Profile
-        </button>
-        <button
-          onClick={() => setActiveTab('notifications')}
-          className={`px-4 py-2 rounded-md font-medium transition-colors ${
-            activeTab === 'notifications' 
-              ? 'bg-white text-blue-600 shadow-sm' 
-              : 'text-gray-600 hover:text-gray-900'
-          }`}
-        >
-          Notifications
-        </button>
-        <button
-          onClick={() => setActiveTab('security')}
-          className={`px-4 py-2 rounded-md font-medium transition-colors ${
-            activeTab === 'security' 
-              ? 'bg-white text-blue-600 shadow-sm' 
-              : 'text-gray-600 hover:text-gray-900'
-          }`}
-        >
-          Security
-        </button>
-        <button
-          onClick={() => setActiveTab('integrations')}
-          className={`px-4 py-2 rounded-md font-medium transition-colors ${
-            activeTab === 'integrations' 
-              ? 'bg-white text-blue-600 shadow-sm' 
-              : 'text-gray-600 hover:text-gray-900'
-          }`}
-        >
-          Integrations
-        </button>
-      </div>
+    <Box>
+      <Typography variant="h4" gutterBottom>
+        Settings
+      </Typography>
 
-      {/* Profile Tab */}
-      {activeTab === 'profile' && (
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-lg font-semibold text-gray-700 mb-4">Profile Information</h3>
-          <form onSubmit={handleProfileSave} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
-                <input
-                  type="text"
-                  value={profileData.firstName}
-                  onChange={(e) => setProfileData(prev => ({ ...prev, firstName: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-                <input
-                  type="text"
-                  value={profileData.lastName}
-                  onChange={(e) => setProfileData(prev => ({ ...prev, lastName: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-              <input
-                type="email"
-                value={profileData.email}
-                onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
-                <input
-                  type="text"
-                  value={profileData.role}
-                  onChange={(e) => setProfileData(prev => ({ ...prev, role: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                <input
-                  type="tel"
-                  value={profileData.phone}
-                  onChange={(e) => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            </div>
-            <div className="flex justify-end">
-              <button
-                type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-              >
-                Save Changes
-              </button>
-            </div>
-          </form>
-        </div>
+      {saveStatus === 'success' && (
+        <Alert severity="success" sx={{ mb: 3 }}>
+          Settings saved successfully!
+        </Alert>
       )}
 
-      {/* Notifications Tab */}
-      {activeTab === 'notifications' && (
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-lg font-semibold text-gray-700 mb-4">Notification Preferences</h3>
-          <div className="space-y-4">
-            {Object.entries(notifications).map(([key, value]) => (
-              <div key={key} className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-medium text-gray-700 capitalize">
-                    {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                  </h4>
-                  <p className="text-sm text-gray-500">
-                    Receive {key.replace(/([A-Z])/g, ' $1').toLowerCase()}
-                  </p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={value}
-                    onChange={() => handleNotificationChange(key)}
-                    className="sr-only peer"
+      <Card>
+        <CardContent>
+          <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+            <Tabs value={activeTab} onChange={handleTabChange} aria-label="settings tabs">
+              <Tab icon={<PersonIcon />} label="Profile" />
+              <Tab icon={<NotificationsIcon />} label="Notifications" />
+              <Tab icon={<SecurityIcon />} label="Security" />
+            </Tabs>
+          </Box>
+
+          {/* Profile Tab */}
+          {activeTab === 0 && (
+            <Box component="form" onSubmit={handleProfileSave}>
+              <Grid container spacing={3}>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="First Name"
+                    value={profileData.firstName}
+                    onChange={(e) => setProfileData(prev => ({ ...prev, firstName: e.target.value }))}
+                    margin="normal"
                   />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                </label>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Last Name"
+                    value={profileData.lastName}
+                    onChange={(e) => setProfileData(prev => ({ ...prev, lastName: e.target.value }))}
+                    margin="normal"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Email"
+                    type="email"
+                    value={profileData.email}
+                    onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
+                    margin="normal"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Phone"
+                    value={profileData.phone}
+                    onChange={(e) => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
+                    margin="normal"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth margin="normal">
+                    <InputLabel>Role</InputLabel>
+                    <Select
+                      value={profileData.role}
+                      label="Role"
+                      onChange={(e) => setProfileData(prev => ({ ...prev, role: e.target.value }))}
+                    >
+                      <MenuItem value="Sales Rep">Sales Rep</MenuItem>
+                      <MenuItem value="Sales Manager">Sales Manager</MenuItem>
+                      <MenuItem value="Account Manager">Account Manager</MenuItem>
+                      <MenuItem value="Admin">Admin</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12}>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    startIcon={<SaveIcon />}
+                    sx={{ mt: 2 }}
+                  >
+                    Save Profile
+                  </Button>
+                </Grid>
+              </Grid>
+            </Box>
+          )}
 
-      {/* Security Tab */}
-      {activeTab === 'security' && (
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-lg font-semibold text-gray-700 mb-4">Security Settings</h3>
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="font-medium text-gray-700">Two-Factor Authentication</h4>
-                <p className="text-sm text-gray-500">Add an extra layer of security to your account</p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={security.twoFactorAuth}
-                  onChange={(e) => handleSecurityChange('twoFactorAuth', e.target.checked)}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-              </label>
-            </div>
+          {/* Notifications Tab */}
+          {activeTab === 1 && (
+            <Box>
+              <Typography variant="h6" gutterBottom>
+                Notification Preferences
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={notifications.emailNotifications}
+                        onChange={() => handleNotificationChange('emailNotifications')}
+                      />
+                    }
+                    label="Email Notifications"
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={notifications.smsNotifications}
+                        onChange={() => handleNotificationChange('smsNotifications')}
+                      />
+                    }
+                    label="SMS Notifications"
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={notifications.dealUpdates}
+                        onChange={() => handleNotificationChange('dealUpdates')}
+                      />
+                    }
+                    label="Deal Updates"
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={notifications.customerAlerts}
+                        onChange={() => handleNotificationChange('customerAlerts')}
+                      />
+                    }
+                    label="Customer Alerts"
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={notifications.weeklyReports}
+                        onChange={() => handleNotificationChange('weeklyReports')}
+                      />
+                    }
+                    label="Weekly Reports"
+                  />
+                </Grid>
+              </Grid>
+            </Box>
+          )}
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Session Timeout (minutes)</label>
-              <select
-                value={security.sessionTimeout}
-                onChange={(e) => handleSecurityChange('sessionTimeout', parseInt(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value={15}>15 minutes</option>
-                <option value={30}>30 minutes</option>
-                <option value={60}>1 hour</option>
-                <option value={120}>2 hours</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Password Expiry (days)</label>
-              <select
-                value={security.passwordExpiry}
-                onChange={(e) => handleSecurityChange('passwordExpiry', parseInt(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value={30}>30 days</option>
-                <option value={60}>60 days</option>
-                <option value={90}>90 days</option>
-                <option value={180}>180 days</option>
-              </select>
-            </div>
-
-            <div className="pt-4 border-t border-gray-200">
-              <button className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">
-                Change Password
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Integrations Tab */}
-      {activeTab === 'integrations' && (
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-lg font-semibold text-gray-700 mb-4">Third-Party Integrations</h3>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <span className="text-blue-600 font-bold">G</span>
-                </div>
-                <div>
-                  <h4 className="font-medium text-gray-700">Google Workspace</h4>
-                  <p className="text-sm text-gray-500">Connect your Google Calendar and Drive</p>
-                </div>
-              </div>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
-                Connect
-              </button>
-            </div>
-
-            <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                  <span className="text-green-600 font-bold">S</span>
-                </div>
-                <div>
-                  <h4 className="font-medium text-gray-700">Slack</h4>
-                  <p className="text-sm text-gray-500">Get notifications in your Slack channels</p>
-                </div>
-              </div>
-              <button className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
-                Connect
-              </button>
-            </div>
-
-            <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <span className="text-purple-600 font-bold">Z</span>
-                </div>
-                <div>
-                  <h4 className="font-medium text-gray-700">Zapier</h4>
-                  <p className="text-sm text-gray-500">Automate workflows with 5000+ apps</p>
-                </div>
-              </div>
-              <button className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors">
-                Connect
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+          {/* Security Tab */}
+          {activeTab === 2 && (
+            <Box>
+              <Typography variant="h6" gutterBottom>
+                Security Settings
+              </Typography>
+              <Grid container spacing={3}>
+                <Grid item xs={12}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={security.twoFactorAuth}
+                        onChange={() => handleSecurityChange('twoFactorAuth', !security.twoFactorAuth)}
+                      />
+                    }
+                    label="Two-Factor Authentication"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth>
+                    <InputLabel>Session Timeout (minutes)</InputLabel>
+                    <Select
+                      value={security.sessionTimeout}
+                      label="Session Timeout (minutes)"
+                      onChange={(e) => handleSecurityChange('sessionTimeout', e.target.value)}
+                    >
+                      <MenuItem value={15}>15 minutes</MenuItem>
+                      <MenuItem value={30}>30 minutes</MenuItem>
+                      <MenuItem value={60}>1 hour</MenuItem>
+                      <MenuItem value={120}>2 hours</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth>
+                    <InputLabel>Password Expiry (days)</InputLabel>
+                    <Select
+                      value={security.passwordExpiry}
+                      label="Password Expiry (days)"
+                      onChange={(e) => handleSecurityChange('passwordExpiry', e.target.value)}
+                    >
+                      <MenuItem value={30}>30 days</MenuItem>
+                      <MenuItem value={60}>60 days</MenuItem>
+                      <MenuItem value={90}>90 days</MenuItem>
+                      <MenuItem value={180}>180 days</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+              </Grid>
+            </Box>
+          )}
+        </CardContent>
+      </Card>
+    </Box>
   );
 }

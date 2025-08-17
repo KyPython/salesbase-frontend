@@ -1,8 +1,24 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useParams, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  TextField,
+  Button,
+  Grid,
+  Alert,
+  CircularProgress
+} from '@mui/material';
+import {
+  Save as SaveIcon,
+  ArrowBack as ArrowBackIcon
+} from '@mui/icons-material';
+import api from '../../services/api';
 
 const schema = z.object({
   first_name: z.string().min(2, 'First name is required'),
@@ -17,6 +33,9 @@ export default function CustomerForm() {
   const { id } = useParams();
   const navigate = useNavigate();
   const isEditMode = id && id !== 'new';
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   
   const {
     register,
@@ -31,148 +50,170 @@ export default function CustomerForm() {
   // Fetch customer data if editing
   useEffect(() => {
     if (isEditMode) {
-      fetch(`http://localhost:3001/api/contacts/${id}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.contact) {
-            setValue('first_name', data.contact.first_name || '');
-            setValue('last_name', data.contact.last_name || '');
-            setValue('email', data.contact.email || '');
-            setValue('phone', data.contact.phone || '');
-            setValue('job_title', data.contact.job_title || '');
-            setValue('company_name', data.contact.company_name || '');
+      setLoading(true);
+      api.get(`/contacts/${id}`)
+        .then(res => {
+          if (res.data.contact) {
+            const contact = res.data.contact;
+            setValue('first_name', contact.first_name || '');
+            setValue('last_name', contact.last_name || '');
+            setValue('email', contact.email || '');
+            setValue('phone', contact.phone || '');
+            setValue('job_title', contact.job_title || '');
+            setValue('company_name', contact.company_name || '');
           }
         })
         .catch(err => {
           console.error('Error fetching customer:', err);
-        });
+          setError('Failed to load customer data');
+        })
+        .finally(() => setLoading(false));
     }
   }, [id, isEditMode, setValue]);
 
   const onSubmit = async (data) => {
     try {
-      const method = isEditMode ? 'PUT' : 'POST';
-      const url = isEditMode
-        ? `http://localhost:3001/api/contacts/${id}`
-        : 'http://localhost:3001/api/contacts';
-      
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      
-      if (res.ok) {
-        // ✅ SUCCESS: Navigate back to customer list
-        navigate('/customers', { 
-          state: { 
-            message: `Customer ${isEditMode ? 'updated' : 'created'} successfully!`,
-            refresh: true 
-          } 
-        });
+      setLoading(true);
+      setError('');
+      setSuccess('');
+
+      if (isEditMode) {
+        await api.put(`/contacts/${id}`, data);
+        setSuccess('Customer updated successfully!');
       } else {
-        alert('Failed to save customer');
+        await api.post('/contacts', data);
+        setSuccess('Customer created successfully!');
       }
+      
+      // Navigate back after a short delay to show success message
+      setTimeout(() => {
+        navigate('/customers');
+      }, 1500);
+      
     } catch (error) {
       console.error('Error saving customer:', error);
-      alert('Failed to save customer');
+      setError(error.response?.data?.error || 'Failed to save customer');
+    } finally {
+      setLoading(false);
     }
   };
 
-return (
-  <div className="max-w-2xl mx-auto">
-    <h2 className="text-2xl font-bold mb-6">
-      {isEditMode ? 'Edit Customer' : 'Add New Customer'}
-    </h2>
-    
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            First Name *
-          </label>
-          <input 
-            {...register('first_name')} 
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          {errors.first_name && (
-            <span className="text-red-500 text-sm">{errors.first_name.message}</span>
-          )}
-        </div>
+  if (loading && isEditMode) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+        <CircularProgress />
+      </Box>
+    );
+  }
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Last Name *
-          </label>
-          <input 
-            {...register('last_name')} 
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          {errors.last_name && (
-            <span className="text-red-500 text-sm">{errors.last_name.message}</span>
-          )}
-        </div>
+  return (
+    <Box>
+      <Typography variant="h4" gutterBottom>
+        {isEditMode ? 'Edit Customer' : 'Add New Customer'}
+      </Typography>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Email *
-          </label>
-          <input 
-            {...register('email')} 
-            type="email"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          {errors.email && (
-            <span className="text-red-500 text-sm">{errors.email.message}</span>
-          )}
-        </div>
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Phone
-          </label>
-          <input 
-            {...register('phone')} 
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
+      {success && (
+        <Alert severity="success" sx={{ mb: 3 }}>
+          {success}
+        </Alert>
+      )}
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Job Title
-          </label>
-          <input 
-            {...register('job_title')} 
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
+      <Card>
+        <CardContent>
+          <Box component="form" onSubmit={handleSubmit(onSubmit)}>
+            <Grid container spacing={3}>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="First Name *"
+                  {...register('first_name')}
+                  error={!!errors.first_name}
+                  helperText={errors.first_name?.message}
+                  margin="normal"
+                />
+              </Grid>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Company Name
-          </label>
-          <input 
-            {...register('company_name')} 
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Last Name *"
+                  {...register('last_name')}
+                  error={!!errors.last_name}
+                  helperText={errors.last_name?.message}
+                  margin="normal"
+                />
+              </Grid>
 
-        <div className="flex gap-4 pt-4">
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-          >
-            {isSubmitting ? 'Saving...' : (isEditMode ? 'Update Customer' : 'Create Customer')}
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate('/customers')}
-            className="px-6 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
-          >
-            Cancel
-          </button>
-        </div>
-      </form>
-    </div>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Email *"
+                  type="email"
+                  {...register('email')}
+                  error={!!errors.email}
+                  helperText={errors.email?.message}
+                  margin="normal"
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Phone"
+                  {...register('phone')}
+                  margin="normal"
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Job Title"
+                  {...register('job_title')}
+                  margin="normal"
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Company Name"
+                  {...register('company_name')}
+                  margin="normal"
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <Box sx={{ display: 'flex', gap: 2, pt: 2 }}>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    startIcon={<SaveIcon />}
+                    disabled={isSubmitting || loading}
+                    size="large"
+                  >
+                    {isSubmitting ? 'Saving...' : (isEditMode ? 'Update Customer' : 'Create Customer')}
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    startIcon={<ArrowBackIcon />}
+                    onClick={() => navigate('/customers')}
+                    size="large"
+                  >
+                    Cancel
+                  </Button>
+                </Box>
+              </Grid>
+            </Grid>
+          </Box>
+        </CardContent>
+      </Card>
+    </Box>
   );
 }
