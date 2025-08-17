@@ -58,7 +58,7 @@ export default function Reports() {
 
   const exportReport = async (format = 'csv') => {
     try {
-      const response = await fetch(`http://localhost:3001/api/reports/export`, {
+      const response = await fetch(`${API_ENDPOINTS.REPORTS.EXPORT}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

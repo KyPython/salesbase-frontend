@@ -27,9 +27,12 @@ import {
   Assessment as ReportsIcon,
   Settings as SettingsIcon,
   ExitToApp as LogoutIcon,
+  DarkMode as DarkModeIcon,
+  LightMode as LightModeIcon,
 } from '@mui/icons-material';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme as useAppTheme } from '../contexts/ThemeContext';
 
 const drawerWidth = 280;
 
@@ -44,6 +47,7 @@ const menuItems = [
 export default function MainLayout() {
   const { user, logout } = useAuth();
   const theme = useTheme();
+  const { mode, toggleTheme } = useAppTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
@@ -168,9 +172,19 @@ export default function MainLayout() {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div">
+          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             Enterprise CRM System
           </Typography>
+          
+          {/* Theme Toggle Button */}
+          <IconButton
+            color="inherit"
+            onClick={toggleTheme}
+            sx={{ ml: 1 }}
+            aria-label="toggle theme"
+          >
+            {mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
+          </IconButton>
         </Toolbar>
       </AppBar>
 

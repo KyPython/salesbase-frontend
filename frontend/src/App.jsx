@@ -1,10 +1,8 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { ThemeProvider } from '@mui/material/styles';
-import { CssBaseline } from '@mui/material';
 import { SnackbarProvider } from 'notistack';
 import { AuthProvider } from './contexts/AuthContext';
-import theme from './theme';
+import { ThemeProvider } from './contexts/ThemeContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './components/Login';
@@ -16,14 +14,13 @@ import CustomerDetail from './components/customers/CustomerDetail';
 import CustomerForm from './components/customers/CustomerForm';
 import Reports from './components/Reports.jsx';
 import ReportDashboard from './pages/Reports/ReportDashboard.jsx';
-import Register from './components/Register'; // Import Register component
-import Settings from './components/Settings'; // Import Settings component
+import Register from './components/Register';
+import Settings from './components/Settings';
 
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
+      <ThemeProvider>
         <AuthProvider>
           <SnackbarProvider 
             maxSnack={3}
@@ -36,7 +33,7 @@ function App() {
               <Routes>
                 {/* Public routes */}
                 <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} /> {/* Add register route */}
+                <Route path="/register" element={<Register />} />
                 
                 {/* Protected routes */}
                 <Route path="/" element={
