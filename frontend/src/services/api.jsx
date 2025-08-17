@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://salesbase-backend.onrender.com';
 
 export const API_ENDPOINTS = {
   CONTACTS: `${API_BASE_URL}/api/contacts`,
@@ -21,7 +21,7 @@ export const API_ENDPOINTS = {
 };
 
 const api = axios.create({
-  baseURL: 'http://localhost:3001/api',
+  baseURL: `${API_BASE_URL}/api`,
   timeout: 10000,
 });
 
