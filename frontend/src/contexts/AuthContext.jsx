@@ -28,10 +28,15 @@ export function AuthProvider({ children }) {
   }, [token]);
 
   const login = async (email, password) => {
+    console.log('AuthContext: Starting login...');
     const res = await api.post('/auth/login', { email, password });
+    console.log('AuthContext: Login response:', res.data);
+    
     setToken(res.data.token);
     localStorage.setItem('token', res.data.token);
     setUser(res.data.user);
+    
+    console.log('AuthContext: State updated, token:', res.data.token, 'user:', res.data.user);
   };
 
   const register = async (email, password, firstName, lastName, role = 'sales_rep') => {

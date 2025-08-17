@@ -12,7 +12,7 @@ import {
   Container,
   Link as MuiLink
 } from '@mui/material';
-// import { useAuth } from '../contexts/AuthContext'; // Removed unused import
+import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
 
@@ -22,21 +22,31 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
-  // const { login } = useAuth(); // Removed unused destructure
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
+    
     try {
-      const response = await api.post('/auth/login', { email, password });
-      if (response.status === 200) {
-        localStorage.setItem('token', response.data.token);
-        navigate('/dashboard'); // or whatever your dashboard route is
-      }
+      console.log('Starting login process...');
+      
+      // Use the login function from AuthContext instead of direct API call
+      await login(email, password);
+      
+      console.log('Login successful, navigating...');
+      
+      // Clear form
+      setEmail('');
+      setPassword('');
+      
+      // Navigate to dashboard (root path)
+      navigate('/');
     } catch (err) {
-      setError('Login failed');
+      console.error('Login error:', err);
+      setError(err.response?.data?.error || 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }
@@ -49,30 +59,28 @@ export default function Login() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: 'background.default',
+        bgcolor: 'grey.50',
+        py: 4
       }}
     >
       <Container maxWidth="sm">
-        <Card sx={{ maxWidth: 400, mx: 'auto' }}>
+        <Card elevation={3}>
           <CardContent sx={{ p: 4 }}>
-            <Typography
-              variant="h4"
-              component="h1"
+            <Typography 
+              variant="h4" 
+              component="h1" 
+              align="center" 
               gutterBottom
-              textAlign="center"
-              color="primary"
-            >
-              SalesBase CRM
-            </Typography>
-            
-            <Typography
-              variant="body1"
-              textAlign="center"
-              color="text.secondary"
               sx={{ mb: 3 }}
             >
               Sign in to your account
             </Typography>
+            
+            {error && (
+              <Alert severity="error" sx={{ mb: 3 }}>
+                {error}
+              </Alert>
+            )}
             
             <Box component="form" onSubmit={handleSubmit}>
               <TextField
@@ -85,6 +93,7 @@ export default function Login() {
                 margin="normal"
                 autoComplete="email"
                 autoFocus
+                disabled={loading}
               />
               
               <TextField
@@ -96,33 +105,28 @@ export default function Login() {
                 required
                 margin="normal"
                 autoComplete="current-password"
+                disabled={loading}
               />
-              
-              {error && (
-                <Alert severity="error" sx={{ mt: 2 }}>
-                  {error}
-                </Alert>
-              )}
               
               <Button
                 type="submit"
                 fullWidth
                 variant="contained"
-                disabled={loading}
+                size="large"
                 sx={{ mt: 3, mb: 2 }}
+                disabled={loading}
               >
                 {loading ? 'Signing in...' : 'Sign In'}
               </Button>
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                textAlign="center"
-              >
-                Don't have an account?{' '}
-                <MuiLink component={Link} to="/register" color="primary">
-                  Create one here
-                </MuiLink>
-              </Typography>
+              
+              <Box textAlign="center">
+                <Typography variant="body2" color="text.secondary">
+                  Don't have an account?{' '}
+                  <MuiLink component={Link} to="/register" variant="body2">
+                    Sign up here
+                  </MuiLink>
+                </Typography>
+              </Box>
             </Box>
           </CardContent>
         </Card>

@@ -1,49 +1,92 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  IconButton,
+  Button,
+  Alert,
+  CircularProgress,
+  Chip,
+  TextField,
+  InputAdornment,
+  Toolbar,
+  Tooltip,
+} from '@mui/material';
+import {
+  Visibility as ViewIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  Add as AddIcon,
+  Search as SearchIcon,
+  Refresh as RefreshIcon,
+} from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
+import { useSnackbar } from 'notistack';
+import api from '../services/api';
 
 export default function Deals() {
+  const [deals, setDeals] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [filter, setFilter] = useState('');
   const [sort, setSort] = useState('date');
+  const [deleteLoading, setDeleteLoading] = useState(null);
+  
+  const navigate = useNavigate();
+  const { enqueueSnackbar } = useSnackbar();
 
-  // Mock data instead of API call
-  const mockDeals = [
-    {
-      id: 1,
-      company_name: 'Acme Corp',
-      value: 250000,
-      status: 'Proposal',
-      date: '2025-08-09',
-      probability: 75
-    },
-    {
-      id: 2,
-      company_name: 'Tech Solutions',
-      value: 180000,
-      status: 'Negotiation',
-      date: '2025-08-08',
-      probability: 90
-    },
-    {
-      id: 3,
-      company_name: 'Global Industries',
-      value: 320000,
-      status: 'Qualification',
-      date: '2025-08-07',
-      probability: 60
-    },
-    {
-      id: 4,
-      company_name: 'Innovation Labs',
-      value: 150000,
-      status: 'Closed Won',
-      date: '2025-08-06',
-      probability: 100
+  const fetchDeals = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const response = await api.get('/deals');
+      setDeals(response.data.deals || []);
+      enqueueSnackbar('Deals loaded successfully', { variant: 'success' });
+    } catch (err) {
+      console.error('Failed to fetch deals:', err);
+      const errorMessage = err.response?.data?.error || 'Failed to fetch deals';
+      setError(errorMessage);
+      enqueueSnackbar(errorMessage, { variant: 'error' });
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  useEffect(() => {
+    fetchDeals();
+  }, []);
+
+  const handleDelete = async (id, companyName) => {
+    if (!window.confirm(`Are you sure you want to delete the deal with ${companyName}?`)) return;
+    
+    try {
+      setDeleteLoading(id);
+      await api.delete(`/deals/${id}`);
+      setDeals(deals.filter(d => d.id !== id));
+      enqueueSnackbar('Deal deleted successfully', { variant: 'success' });
+    } catch (err) {
+      console.error('Failed to delete deal:', err);
+      const errorMessage = err.response?.data?.error || 'Failed to delete deal';
+      enqueueSnackbar(errorMessage, { variant: 'error' });
+    } finally {
+      setDeleteLoading(null);
+    }
+  };
 
   // Filter and sort deals
-  const filteredDeals = mockDeals
+  const filteredDeals = deals
     .filter(deal => 
-      deal.company_name.toLowerCase().includes(filter.toLowerCase())
+      deal.company_name.toLowerCase().includes(filter.toLowerCase()) ||
+      deal.title.toLowerCase().includes(filter.toLowerCase())
     )
     .sort((a, b) => {
       switch (sort) {
@@ -51,68 +94,187 @@ export default function Deals() {
           return b.value - a.value;
         case 'status':
           return a.status.localeCompare(b.status);
+        case 'probability':
+          return b.probability - a.probability;
         case 'date':
         default:
           return new Date(b.date) - new Date(a.date);
       }
     });
 
+  const formatCurrency = (value, currency = 'USD') => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency
+    }).format(value);
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'No Date';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
+  };
+
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-6">Deals Pipeline</h2>
-      
-      <div className="mb-6 flex gap-4">
-        <input
-          type="text"
-          placeholder="Filter by company..."
-          value={filter}
-          onChange={e => setFilter(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <select 
-          value={sort} 
-          onChange={e => setSort(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+    <Box>
+      <Typography variant="h4" gutterBottom>
+        Deals Pipeline
+      </Typography>
+
+      {error && (
+        <Alert 
+          severity="error" 
+          sx={{ mb: 3 }}
+          action={
+            <Button color="inherit" size="small" onClick={fetchDeals}>
+              Retry
+            </Button>
+          }
         >
-          <option value="date">Date</option>
-          <option value="value">Value</option>
-          <option value="status">Status</option>
-        </select>
-      </div>
-      
-      <div className="bg-white shadow-md rounded-lg overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Company</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Value</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Probability</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {filteredDeals.map(deal => (
-              <tr key={deal.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap font-medium">{deal.company_name}</td>
-                <td className="px-6 py-4 whitespace-nowrap">${deal.value.toLocaleString()}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                    deal.status === 'Closed Won' ? 'bg-green-100 text-green-800' :
-                    deal.status === 'Proposal' ? 'bg-blue-100 text-blue-800' :
-                    deal.status === 'Negotiation' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-gray-100 text-gray-800'
-                  }`}>
-                    {deal.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">{deal.probability}%</td>
-                <td className="px-6 py-4 whitespace-nowrap text-gray-500">{deal.date}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+          {error}
+        </Alert>
+      )}
+
+      <Card>
+        <CardContent>
+          <Toolbar sx={{ pl: { sm: 2 }, pr: { xs: 1, sm: 1 } }}>
+            <TextField
+              placeholder="Search deals..."
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{ flexGrow: 1, maxWidth: 400 }}
+            />
+            <Box sx={{ ml: 2 }}>
+              <Tooltip title="Refresh">
+                <IconButton onClick={fetchDeals} disabled={loading}>
+                  <RefreshIcon />
+                </IconButton>
+              </Tooltip>
+            </Box>
+          </Toolbar>
+
+          {/* Results Summary */}
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              Showing {filteredDeals.length} of {deals.length} deals
+            </Typography>
+          </Box>
+
+          <TableContainer component={Paper} variant="outlined">
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Company</TableCell>
+                  <TableCell>Value</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Probability</TableCell>
+                  <TableCell>Date</TableCell>
+                  <TableCell align="center">Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredDeals.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} align="center">
+                      <Typography variant="body2" color="text.secondary">
+                        No deals found.
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredDeals.map((deal) => (
+                    <TableRow key={deal.id} hover>
+                      <TableCell>
+                        <Typography variant="body2" fontWeight="medium">
+                          {deal.company_name}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {deal.title}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" fontWeight="medium">
+                          {formatCurrency(deal.value, deal.currency)}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Chip 
+                          label={deal.status} 
+                          size="small"
+                          color={deal.status === 'Closed Won' ? 'success' : 
+                                 deal.status === 'Closed Lost' ? 'error' : 'default'}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2">
+                          {deal.probability}%
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2">
+                          {formatDate(deal.date)}
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="center">
+                        <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+                          <Tooltip title="View Deal">
+                            <IconButton 
+                              size="small" 
+                              onClick={() => navigate(`/deals/${deal.id}`)}
+                            >
+                              <ViewIcon />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Edit Deal">
+                            <IconButton 
+                              size="small" 
+                              onClick={() => navigate(`/deals/${deal.id}/edit`)}
+                            >
+                              <EditIcon />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete Deal">
+                            <IconButton 
+                              size="small" 
+                              color="error"
+                              onClick={() => handleDelete(deal.id, deal.company_name)}
+                              disabled={deleteLoading === deal.id}
+                            >
+                              {deleteLoading === deal.id ? (
+                                <CircularProgress size={16} />
+                              ) : (
+                                <DeleteIcon />
+                              )}
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </CardContent>
+      </Card>
+    </Box>
   );
 }

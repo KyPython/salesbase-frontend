@@ -21,7 +21,7 @@ export const API_ENDPOINTS = {
 };
 
 const api = axios.create({
-  baseURL: 'https://salesbase-backend.onrender.com/api',
+  baseURL: 'http://localhost:3001/api',
   timeout: 10000,
 });
 
